@@ -1,0 +1,8 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "ignoreDeprecations": "6.0",
+    "rootDir": "src"
+  },
+  "exclude": [".git", "node_modules", "dist", "test", "**/*spec.ts", "prisma", "*.db*", "**/*.db*", "*.tsbuildinfo", "**/*.tsbuildinfo", "vitest.config*.ts"]
+}

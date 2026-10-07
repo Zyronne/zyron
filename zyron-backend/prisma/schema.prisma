@@ -1,0 +1,354 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ─── USERS & ORGS ───────────────────────────────────────
+
+model User {
+  id              String        @id @default(cuid())
+  email           String        @unique
+  passwordHash    String?       // null for wallet-only or GitHub-only users
+  walletAddress   String?       @unique
+  name            String
+  role            String        @default("CLIENT") // CLIENT, AUDITOR, ADMIN
+  avatarUrl       String?
+  auditorHandle   String?       // e.g. "0xAuditor_K4"
+  specialization  String?
+  isAvailable     Boolean       @default(true)
+  maxConcurrentAudits Int       @default(3)
+  onboardingStatus String       @default("ACTIVE") // APPLICANT, BENCHMARK_PASSED, ACTIVE, SUSPENDED
+  emailVerified   Boolean       @default(false)
+  emailVerifiedAt DateTime?
+  organizationId  String?
+  organization    Organization? @relation(fields: [organizationId], references: [id])
+
+  // GitHub OAuth
+  githubId          String?   @unique  // GitHub numeric user ID
+  githubLogin       String?             // GitHub username e.g. "vasakee"
+  githubAccessToken String?             // OAuth token for private repo access (store encrypted in prod)
+  githubAvatarUrl   String?             // GitHub avatar URL
+
+  // Privy Integration
+  privyDid          String?   @unique  // Privy Decentralized Identifier (did:privy:...)
+
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  // Relations
+  passport        TrustPassport?
+  submittedAudits AuditRequest[] @relation("SubmittedBy")
+  leadAudits      AuditRequest[] @relation("LeadAuditor")
+  peerAudits      AuditRequest[] @relation("PeerAuditor")
+  comments        Comment[]
+  apiKeys         ApiKey[]
+  passwordResetTokens PasswordResetToken[]
+  emailVerificationTokens EmailVerificationToken[]
+
+  @@index([email])
+  @@index([walletAddress])
+}
+
+model Organization {
+  id           String         @id @default(cuid())
+  name         String
+  tier         String         @default("standard") // standard, enterprise
+  billingEmail String?
+  taxId        String?
+  createdAt    DateTime       @default(now())
+  users        User[]
+  audits       AuditRequest[]
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  key        String    @unique
+  label      String
+  userId     String
+  user       User      @relation(fields: [userId], references: [id])
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  expiresAt  DateTime?
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+model EmailVerificationToken {
+  id        String    @id @default(cuid())
+  token     String    @unique
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([token])
+  @@index([userId])
+}
+
+// ─── AUDIT LIFECYCLE ────────────────────────────────────
+
+model AuditRequest {
+  id               String     @id // e.g. "ZYR-9481"
+  protocolName     String
+  contractFileName String
+  contractAddress  String?
+  gitCommit        String?
+  compilerVersion  String
+  network          String     @default("Ethereum Mainnet")
+  sloc             Int
+  stage            String     @default("PENDING") // PENDING, SCANNING, IN_REVIEW, CORRECTIONS_REQUESTED, COMPLETED, FAILED
+  stageNumber      Int        @default(1)
+
+  // Source
+  sourceCode       String? // Ingested or uploaded raw Solidity contract source code
+  sourceCodeUrl    String? // S3 key for uploaded .sol
+  githubRepoUrl    String?
+
+  githubBranch     String?
+  sourceHash       String?   // SHA-256 of all source files concatenated
+  compilerSettings String?   // JSON: { version, optimizer, runs }
+  scanTimeoutMs    Int       @default(120000)
+
+  // Invariant selections
+  invariants String? // JSON string { reentrancy: true, oracle: true }
+  businessGoals String? // Platform business objectives, economic flows, and intent for AI and reviewer context
+
+  // Timing
+  submittedAt         DateTime  @default(now())
+  estimatedCompletion DateTime?
+  completedAt         DateTime?
+
+  // Attestation (filled on completion)
+  bytecodeHash      String?
+  reportPdfUrl      String?
+  pdfSize           String?
+  onChainTxHash     String? // Attestation registry tx
+  onChainChainId    Int?
+  attestationStatus String  @default("AUTOMATED_ONLY") // AUTOMATED_ONLY, PENDING_REVIEW, MANUALLY_ATTESTED, REVOKED
+  merkleRoot        String?
+  attestationSig    String?
+  engineVersion     String  @default("v3.0.0-ast")
+  ruleSetVersion    String  @default("v2026.09")
+
+  // Decentralized IPFS Storage
+  ipfsCid           String? // IPFS Content Identifier (e.g. bafybeig...)
+  ipfsReportUrl     String? // ipfs://{ipfsCid}
+  ipfsGatewayUrl    String? // Public HTTP gateway URL
+  ipfsMetadataCid   String? // IPFS CID for ERC-721 attestation metadata
+  ipfsPinnedAt      DateTime?
+
+  // Failure
+  failureReason String?
+
+  // Relations
+  submittedById  String
+  submittedBy    User          @relation("SubmittedBy", fields: [submittedById], references: [id])
+  organizationId String?
+  organization   Organization? @relation(fields: [organizationId], references: [id])
+  leadAuditorId  String?
+  leadAuditor    User?         @relation("LeadAuditor", fields: [leadAuditorId], references: [id])
+  peerAuditorId  String?
+  peerAuditor    User?         @relation("PeerAuditor", fields: [peerAuditorId], references: [id])
+
+  findings Finding[]
+  rounds   AuditRound[]
+  scanJobs ScanJob[]
+  scanRuns ScanRun[]
+  payment  Payment?
+  comments Comment[]
+  trustClaims TrustClaim[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([stage])
+  @@index([submittedById])
+  @@index([leadAuditorId])
+}
+
+model AuditRound {
+  id          String       @id @default(cuid())
+  roundNumber Int
+  commitSha   String
+  status      String       @default("active") // active, completed
+  summary     String?
+  auditId     String
+  audit       AuditRequest @relation(fields: [auditId], references: [id])
+  startedAt   DateTime     @default(now())
+  completedAt DateTime?
+}
+
+// ─── FINDINGS ───────────────────────────────────────────
+
+model Finding {
+  id                      String   @id @default(cuid())
+  displayId               String   // e.g. "ZYR-9481-001"
+  title                   String
+  severity                String   // CRITICAL, HIGH, MEDIUM, LOW, INFORMATIONAL
+  cvss                    String?
+  status                  String   @default("OPEN") // OPEN, FIX_SUBMITTED, RESOLVED, WONT_FIX
+  confidence              String   @default("HIGH_CONFIDENCE") // HIGH_CONFIDENCE, NEEDS_MANUAL_REVIEW, INFORMATIONAL
+  analysisPass            Int?     // Pass 1..14
+  taxonomy                String?  // "SWC-107 · CWE-841"
+  location                String?  // "contracts/VaultCore.sol:142"
+  impact                  String?
+  description             String
+  vulnerableCode          String?
+  vulnerableLines         String?
+  remediatedCode          String?
+  remediationNote         String?
+  fuzzTestStatus          String?
+  fundsDrainedEth         Float?
+  isMitigated             Boolean  @default(false)
+  mitigationJustification String?
+  ruleId                  String?  // e.g. "ZYRON-08-001"
+  falsePositive           Boolean  @default(false)
+  fpJustification         String?  // Auditor justification for FP marking
+  foundBy                 String   @default("STATIC") // STATIC, AI, MANUAL
+  traceSteps              String?  // JSON string containing step-by-step EVM call replay trace
+  synthesizedPoC          String?  // Synthesized Solidity exploit test contract
+
+  auditId  String
+  audit    AuditRequest @relation(fields: [auditId], references: [id])
+  comments Comment[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([auditId])
+  @@index([severity])
+  @@index([status])
+}
+
+// ─── COMMENTS (per-finding + per-audit) ─────────────────
+
+model Comment {
+  id        String        @id @default(cuid())
+  message   String
+  commitRef String?       // client fix commit reference
+  senderId  String
+  sender    User          @relation(fields: [senderId], references: [id])
+  auditId   String?
+  audit     AuditRequest? @relation(fields: [auditId], references: [id])
+  findingId String?
+  finding   Finding?      @relation(fields: [findingId], references: [id])
+  createdAt DateTime      @default(now())
+
+  @@index([auditId])
+  @@index([findingId])
+}
+
+// ─── SCANNER ────────────────────────────────────────────
+
+model ScanJob {
+  id          String       @id @default(cuid())
+  auditId     String
+  audit       AuditRequest @relation(fields: [auditId], references: [id])
+  tool        String       // "slither", "mythril", "aderyn"
+  status      String       @default("queued") // queued, running, completed, failed
+  passNumber  Int?         // e.g. 1 of 14
+  totalPasses Int?
+  logOutput   String?
+  results     String?      // parsed findings JSON string
+  startedAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime     @default(now())
+
+  @@index([auditId])
+  @@index([status])
+}
+
+model ScanRun {
+  id              String       @id @default(cuid())
+  auditId         String
+  audit           AuditRequest @relation(fields: [auditId], references: [id])
+  engineVersion   String
+  ruleSetVersion  String
+  sourceHash      String?
+  totalPasses     Int
+  passesCompleted Int          @default(0)
+  findingsCount   Int          @default(0)
+  diagnostics     String?      // JSON array of non-finding diagnostics
+  durationMs      Int?
+  status          String       @default("running")
+  startedAt       DateTime     @default(now())
+  completedAt     DateTime?
+
+  @@index([auditId])
+}
+
+// ─── PAYMENTS ───────────────────────────────────────────
+
+model Payment {
+  id            String       @id @default(cuid())
+  auditId       String       @unique
+  audit         AuditRequest @relation(fields: [auditId], references: [id])
+  method        String       // CRYPTO_ESCROW, CORPORATE_INVOICE
+  amount        Float
+  currency      String       @default("USDC")
+  chainId       Int?
+  escrowTxHash  String?
+  releaseTxHash String?
+  invoiceUrl    String?
+  status        String       @default("PENDING") // PENDING, ESCROWED, PARTIALLY_RELEASED, FULLY_RELEASED, REFUNDED
+  paidAt        DateTime?
+  createdAt     DateTime     @default(now())
+}
+
+// ─── TRUST PASSPORT & CLAIMS ─────────────────────────────
+
+model TrustPassport {
+  id              String       @id @default(cuid())
+  userId          String       @unique
+  user            User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  handle          String?      @unique
+  title           String?      @default("Zyron Trust Passport")
+  bio             String?
+  reputationScore Int          @default(100)
+  isVerified      Boolean      @default(false)
+  claims          TrustClaim[]
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+
+  @@index([userId])
+}
+
+model TrustClaim {
+  id               String         @id @default(cuid())
+  passportId       String
+  passport         TrustPassport  @relation(fields: [passportId], references: [id], onDelete: Cascade)
+  claimType        String         // DEVELOPER_VERIFIED, GITHUB_VERIFIED, AI_AGENT_VERIFIED, AUDIT_COMPLETED, CONTRACT_VERIFIED, SECURITY_FINDING, HUMAN_REVIEWED, CONTENT_VERIFIED
+  subject          String         // e.g. wallet address, github username, auditId, contract address
+  issuer           String         // e.g. "ZYRON_AI_AUDITOR_001", "ZYRON_SYSTEM", auditor wallet address
+  evidence         String         // JSON string containing verification data, metadata, or findings Merkle root
+  evidenceHash     String         // Deterministic SHA-256 hash of canonical evidence
+  status           String         @default("VERIFIED") // PENDING, VERIFIED, REVOKED
+  onChainTxHash    String?        // Monad transaction hash
+  onChainChainId   Int?           @default(10143)
+  onChainTokenId   Int?           // Soulbound token ID
+  auditId          String?        // Link to AuditRequest if applicable
+  audit            AuditRequest?  @relation(fields: [auditId], references: [id])
+  issuedAt         DateTime       @default(now())
+  revokedAt        DateTime?
+
+  @@index([passportId])
+  @@index([claimType])
+  @@index([evidenceHash])
+  @@index([auditId])
+}

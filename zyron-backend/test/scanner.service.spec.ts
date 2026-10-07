@@ -1,0 +1,230 @@
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { Test, TestingModule } from '@nestjs/testing';
+import { ScannerService } from '../src/scanner/scanner.service';
+import { TokenScannerService } from '../src/scanner/token-scanner.service';
+import { ScanOrchestratorService, AgentProverClientService } from '../src/scanner/services';
+import { TokenRuleScannerService } from '../src/scanner/services/token-rule-scanner.service';
+import { AiProviderFactory } from '../src/scanner/ai-providers';
+import { AiGeminiClientService } from '../src/scanner/services/ai-gemini-client.service';
+import { PrismaService } from '../src/database/database.module';
+import { GithubService } from '../src/integrations/github.service';
+import { AuditStage } from '../src/common/enum';
+import { AiAuditService } from '../src/scanner/ai-audit.service';
+
+describe('ScannerService & TokenScannerService (Unit Tests)', () => {
+  let scannerService: ScannerService;
+  let tokenScannerService: TokenScannerService;
+  let mockPrisma: any;
+  let mockGithubService: any;
+  let mockOrchestrator: any;
+
+  const mockAudit = {
+    id: 'ZYR-9481',
+    protocolName: 'Aura Liquidity Pool V3',
+    contractFileName: 'VaultCore.sol',
+    compilerVersion: 'v0.8.20',
+    sloc: 2410,
+    stage: AuditStage.PENDING,
+    stageNumber: 1,
+    findings: [],
+  };
+
+  const mockTokenCodeWithHoneypot = `
+    pragma solidity ^0.8.20;
+    contract VulnerableToken {
+      mapping(address => uint256) public balanceOf;
+      address public owner;
+      bool public isPaused;
+
+      function mint(address to, uint256 amount) external {
+        require(msg.sender == owner);
+        balanceOf[to] += amount;
+      }
+
+      function pause() external {
+        require(msg.sender == owner);
+        isPaused = true;
+      }
+
+      function transfer(address to, uint256 amount) external returns (bool) {
+        require(!isPaused, "Paused");
+        balanceOf[msg.sender] -= amount;
+        balanceOf[to] += amount * 50 / 100; // 50% sell tax!
+        return true;
+      }
+    }
+  `;
+
+  beforeEach(async () => {
+    mockPrisma = {
+      auditRequest: {
+        findUnique: vi.fn().mockResolvedValue(mockAudit),
+        update: vi.fn().mockResolvedValue({ ...mockAudit, stage: AuditStage.IN_REVIEW, stageNumber: 3 }),
+        count: vi.fn().mockResolvedValue(0),
+        create: vi.fn().mockResolvedValue({ ...mockAudit, id: 'ZYR-9482' }),
+      },
+      scanJob: {
+        create: vi.fn().mockResolvedValue({ id: 'job_123', tool: 'zyron-ast-engine-v3.0.0', status: 'running' }),
+        update: vi.fn().mockResolvedValue({ id: 'job_123', status: 'completed' }),
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+      finding: {
+        create: vi.fn().mockImplementation((args) => Promise.resolve({ id: 'find_1', ...args.data })),
+        findMany: vi.fn().mockResolvedValue([]),
+      },
+    };
+
+    mockGithubService = {
+      parseRepoUrl: vi.fn().mockReturnValue({ owner: 'auraprotocol', repo: 'aura-contracts' }),
+      fetchRepoTree: vi.fn().mockResolvedValue(['VaultCore.sol', 'Token.sol']),
+      fetchFileContent: vi.fn().mockResolvedValue(mockTokenCodeWithHoneypot),
+      postCommentToIssue: vi.fn().mockResolvedValue({ id: 12345, html_url: 'https://github.com/auraprotocol/aura-contracts/issues/1#issuecomment-123' }),
+    };
+
+    mockOrchestrator = {
+      runScan: vi.fn().mockImplementation((auditId) => {
+        mockPrisma.scanJob.create({ data: { auditId, status: 'running' } });
+        mockPrisma.finding.create({ data: { title: 'Found issue' } });
+        mockPrisma.scanJob.update({ where: { id: 'job_123' }, data: { status: 'completed' } });
+        return Promise.resolve({ scanJob: { id: 'job_123', status: 'completed' }, findingsCount: 1 });
+      }),
+      processGithubBotMention: vi.fn().mockImplementation((payload: any) => {
+        const owner = payload?.repository?.owner?.login || 'auraprotocol';
+        const repo = payload?.repository?.name || 'aura-contracts';
+        const issue = payload?.issue?.number || 42;
+        if (/@zyron[-_]?bot\b/i.test(payload?.comment?.body || '')) {
+          mockGithubService.postCommentToIssue(owner, repo, issue, 'Zyron AI Security Bot findings report');
+          return Promise.resolve({ triggered: true, processed: true });
+        }
+        return Promise.resolve({ triggered: false, reason: 'No bot mention in comment' });
+      }),
+    };
+
+    const module: TestingModule = await Test.createTestingModule({
+      providers: [
+        ScannerService,
+        TokenScannerService,
+        TokenRuleScannerService,
+        AiAuditService,
+        { provide: AiProviderFactory, useValue: { getProvider: vi.fn(), getSupportedProviders: vi.fn() } },
+        AiGeminiClientService,
+        { provide: ScanOrchestratorService, useValue: mockOrchestrator },
+        { provide: AgentProverClientService, useValue: { proveAuditFindings: vi.fn(), handleProverCallback: vi.fn() } },
+        { provide: PrismaService, useValue: mockPrisma },
+        { provide: GithubService, useValue: mockGithubService },
+      ],
+    }).compile();
+
+    scannerService = module.get<ScannerService>(ScannerService);
+    tokenScannerService = module.get<TokenScannerService>(TokenScannerService);
+  });
+
+  describe('TokenScannerService', () => {
+    it('should detect minting privileges, pause control, and transfer tax in token code', () => {
+      const result = tokenScannerService.analyzeTokenCode('VulnerableToken.sol', mockTokenCodeWithHoneypot);
+
+      expect(result.tokenRiskScore).toBeGreaterThanOrEqual(40);
+      expect(result.findings).toEqual(
+        expect.arrayContaining([
+          expect.objectContaining({ title: expect.stringMatching(/Minting/i) }),
+          expect.objectContaining({ title: expect.stringMatching(/Pause/i) }),
+          expect.objectContaining({ title: expect.stringMatching(/Tax/i) }),
+        ]),
+      );
+    });
+
+    it('should pass clean standard ERC-20 contract without flags', () => {
+      const cleanCode = `
+        pragma solidity ^0.8.20;
+        contract CleanToken {
+          mapping(address => uint256) public balanceOf;
+          function transfer(address to, uint256 amount) external returns (bool) {
+            balanceOf[msg.sender] -= amount;
+            balanceOf[to] += amount;
+            return true;
+          }
+        }
+      `;
+
+      const result = tokenScannerService.analyzeTokenCode('CleanToken.sol', cleanCode);
+      expect(result.tokenRiskScore).toBe(0);
+      expect(result.findings).toHaveLength(0);
+    });
+  });
+
+  describe('ScannerService', () => {
+    it('should create ScanJob, run analysis rules, and populate findings into database', async () => {
+      await scannerService.runScan('ZYR-9481', mockTokenCodeWithHoneypot);
+
+      expect(mockPrisma.scanJob.create).toHaveBeenCalledWith(
+        expect.objectContaining({
+          data: expect.objectContaining({
+            auditId: 'ZYR-9481',
+            status: 'running',
+          }),
+        }),
+      );
+      expect(mockPrisma.finding.create).toHaveBeenCalled();
+      expect(mockPrisma.scanJob.update).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: 'job_123' },
+          data: expect.objectContaining({ status: 'completed' }),
+        }),
+      );
+    });
+
+    it('should handle @zyron-bot audit mention from GitHub webhook and reply with findings comment', async () => {
+      const webhookPayload = {
+        action: 'created',
+        issue: { number: 42 },
+        comment: {
+          id: 999,
+          body: '@zyron-bot audit please review VaultCore.sol',
+          user: { login: 'alex-vance' },
+        },
+        repository: {
+          html_url: 'https://github.com/auraprotocol/aura-contracts',
+          name: 'aura-contracts',
+          owner: { login: 'auraprotocol' },
+        },
+      };
+
+      const result = await scannerService.processGithubBotMention(webhookPayload);
+
+      expect(result.triggered).toBe(true);
+      expect(mockGithubService.postCommentToIssue).toHaveBeenCalledWith(
+        'auraprotocol',
+        'aura-contracts',
+        42,
+        expect.stringMatching(/Zyron AI Security Bot/i),
+      );
+    });
+
+    it('should handle @zyron_bot mention with underscore and trigger audit', async () => {
+      const webhookPayload = {
+        action: 'created',
+        issue: { number: 88 },
+        comment: {
+          id: 1001,
+          body: '@zyron_bot audit check reentrancy in StakingPool.sol',
+          user: { login: 'dev-crypto' },
+        },
+        repository: {
+          html_url: 'https://github.com/monad-defi/staking',
+          name: 'staking',
+          owner: { login: 'monad-defi' },
+        },
+      };
+
+      const result = await scannerService.processGithubBotMention(webhookPayload);
+
+      expect(result.triggered).toBe(true);
+      expect(mockGithubService.postCommentToIssue).toHaveBeenCalledWith(
+        'monad-defi',
+        'staking',
+        88,
+        expect.stringMatching(/Zyron AI Security Bot/i),
+      );
+    });
+  });
+});

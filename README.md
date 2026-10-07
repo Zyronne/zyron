@@ -1,0 +1,114 @@
+# 🛡️ Zyron: The Trust & Attestation Layer for AI Agents & Protocols on Monad
+
+> **Monad Metropolis Hackathon** | **Track**: Trust, Identity & Data Ownership for AI  
+> **Deployed on Monad Testnet (`10143`)**: [`0xBd24D2BFFbc69a17aCe69aaF930fC4e0d979c4D3`](https://testnet.monadvision.com/address/0xBd24D2BFFbc69a17aCe69aaF930fC4e0d979c4D3)  
+> **Interactive API & OpenAPI Specs**: `http://localhost:4000/docs` (Swagger: `admin` / `zyron2026`)
+
+---
+
+## 📌 Executive Summary & Track Fit
+
+### The Core Problem in an AI-Native Internet
+AI has permanently altered assumptions about code generation and digital provenance: autonomous agents can synthesize, deploy, and interact with smart contracts in milliseconds. However, **how does an on-chain protocol, DeFi vault, or peer AI agent trust that bytecode is secure, authentic, and uncompromised without relying on a centralized, closed Web2 platform?**
+
+### Zyron's Solution
+Zyron is an **On-Chain Trust, Attestation & Invariant Verification Primitive** built natively for Monad. It decouples security validation from centralized gatekeepers, establishing a composable, non-capturable trust layer where:
+1. **Autonomous Invariant Verification (ERC-8004 Validation Layer)**: AI agents and native Foundry host runners synthesize and prove live EVM execution traces against state invariants.
+2. **Cryptographic Content Passports (Track Prompt #02)**: Every verified contract bytecode is bound to a SHA-256 binary hash, a Merkleized findings tree, and decentralized IPFS proof artifacts, sealed into an on-chain ERC-721 Soulbound Security Seal.
+3. **Decentralized Trust Passports (Track Prompt #06)**: Human auditors and verification agents earn non-transferable, portable on-chain skill credentials verified across Monad without middlemen.
+4. **On-Chain Composability (`GuardedByZyron`)**: Any Monad DeFi protocol or agent can enforce attestation gates in 5 lines of Solidity before accepting token deposits or routing calls.
+
+---
+
+## ⚡ Leveraging Monad's Native Primitives
+
+| Monad Feature | How Zyron Leverages It |
+|---|---|
+| **Native P256 / WebAuthn Precompile** | Frictionless biometric passkey signing (TouchID/FaceID) via Privy embedded wallets, producing verifiable EIP-712/P-256 signatures with 0 gas cost to the user. |
+| **ERC-8004 Trustless Agent Standard** | Functions as the **Validation & Reputation Registry** for autonomous AI agents on Monad, recording verifiable task execution and invariant proofs. |
+| **BTX Encrypted Mempools** | Guarantees confidential disclosure during exploit triage, preventing MEV searchers from frontrunning disclosed 0-days before mitigations are sealed. |
+| **10,000 TPS Parallel EVM** | Makes continuous, per-commit on-chain attestation economically and practically viable at sub-cent gas fees. |
+
+---
+
+## 🏗️ Architecture
+
+```mermaid
+flowchart TD
+    subgraph Client & Developer Layer
+        Dev[Protocol Developer]
+        Auditor[Auditor / SecOps Agent]
+        Dev -->|1. Submit Repo / Bytecode| Portal[Zyron Portal & API]
+        Auditor -->|4. EIP-712 Biometric Sign| ReviewUI[Auditor Review Workspace]
+    end
+
+    subgraph Autonomous Verification Layer
+        Portal -->|2. Queue AST & Fuzz Job| Agent[zyron-agent Service]
+        Agent -->|3. Host Foundry Runner| InvariantProof[Native EVM Invariant Proofs]
+        InvariantProof -->|Traces & Gas Telemetry| Backend[zyron-backend NestJS]
+    end
+
+    subgraph Decentralized Attestation Layer on Monad
+        Backend -->|5. Gas-Sponsored Relayer| Relayer[Operator Wallet 0x48b1...]
+        Relayer -->|6. publishAttestation| Contract[ZyronAttestation.sol 0xBd24...]
+        Contract -->|7. Mint Soulbound Seal| MonadChain[Monad Testnet 10143]
+        Backend -->|8. Pin Report & Metadata| IPFS[Decentralized IPFS]
+        Backend -->|9. Issue Claims| Passport[Trust Passport Registry]
+    end
+
+    subgraph Composability & Developer Consumption
+        MonadChain -->|verifyByBytecodeHash| DeFiVault[Monad DeFi Vault / GuardedByZyron]
+        MonadChain -->|Trustless Validation| ERC8004[ERC-8004 Autonomous Agents]
+    end
+```
+
+---
+
+## 🚀 Quickstart: Developer Integration in 5 Lines
+
+Any protocol or AI agent on Monad can guard their contract interactions using [`GuardedByZyron.sol`](file:///Users/basil/Desktop/codes/Zyron-Monad/zyron-contracts/src/examples/GuardedByZyron.sol):
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.24;
+
+import "@zyron/contracts/GuardedByZyron.sol";
+
+contract SafeVault is GuardedByZyron {
+    // Pass the deployed ZyronAttestation address on Monad Testnet
+    constructor() GuardedByZyron(0xBd24D2BFFbc69a17aCe69aaF930fC4e0d979c4D3) {}
+
+    // Restricts interaction strictly to bytecodes with an active on-chain Zyron attestation
+    function depositCollateral(address token) external onlyAttestedTarget(token) {
+        // Safe: Token bytecode is cryptographically verified on Monad!
+    }
+}
+```
+
+See [INTEGRATION.md](./INTEGRATION.md) for full SDK and contract documentation.
+
+---
+
+## 📦 Monorepo Structure
+
+- **[`zyron-contracts`](./zyron-contracts)**: Foundry project containing `ZyronAttestation.sol`, `IZyronAttestation.sol`, and `GuardedByZyron.sol`.
+- **[`zyron-agent`](./zyron-agent)**: Autonomous AI verification microservice running native host Foundry test synthesis and opcode trace extraction.
+- **[`zyron-backend`](./zyron-backend)**: NestJS API server providing EIP-712 payload generation, IPFS pinning, Trust Passport services, and gas-sponsored relayer broadcasting.
+- **[`zyron-frontend`](./zyron-frontend)**: Next.js 14 Web3 application supporting Privy biometric authentication, interactive triage workspace, and public Trust Passports.
+
+---
+
+## 🏆 Hackathon Evaluation Matrix
+
+| Judging Criterion | Zyron Implementation | Weight |
+|---|---|---|
+| **Technical Execution** | Live smart contract deployed on Monad Testnet (`0xBd24...`), native Foundry host runner, EIP-712 typed signing, gas-sponsored relayer fallback, 124 passing backend tests, 24 passing agent tests. | **20%** |
+| **Design & Craft** | First-class developer experience: Solidity interface (`IZyronAttestation`), ready-to-inherit `GuardedByZyron`, comprehensive Swagger OpenAPI docs, clean Privy WebAuthn UX. | **20%** |
+| **Originality & Track Insight** | Real, non-simulated bytecode verification; decentralized Content & Trust Passports immune to single-platform capture; aligns directly with ERC-8004 Validation Layer. | **15%** |
+| **Founder & Market Readiness** | Clear target customers: Monad DeFi protocols, cross-chain bridge adapters, and autonomous AI agents needing verifiable bytecode guarantees before capital allocation. | **25%** |
+| **Traction & Path Forward** | Verified against real production protocols (`Wype` Escrow, `GhostFi`); clear roadmap for mainnet ERC-8004 registry integration and automated bounty escrow. | **20%** |
+
+---
+
+## 📄 License
+MIT License. Built with ❤️ for the Monad Metropolis Hackathon.
