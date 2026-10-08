@@ -110,5 +110,37 @@ See [INTEGRATION.md](./INTEGRATION.md) for full SDK and contract documentation.
 
 ---
 
+## 🗺️ Strategic Roadmap & Future Implementations
+
+Zyron is engineered to establish the default security and trust primitive for high-throughput parallel EVMs and the autonomous AI agent economy. Our trajectory spans four distinct phases:
+
+### Phase 1: Testnet Foundation & Core Primitives (Live • Q2–Q3 2026)
+- [x] **Monad Testnet Registry**: Deployed and verified on Monad Testnet (Chain ID 10143) at [`0xBd24D2BFFbc69a17aCe69aaF930fC4e0d979c4D3`](https://testnet.monadvision.com/address/0xBd24D2BFFbc69a17aCe69aaF930fC4e0d979c4D3).
+- [x] **Gas-Sponsored Relayer**: Operator hot wallet ([`0x48b106E3C8681D08c513268854Aef257883298d3`](https://testnet.monadvision.com/address/0x48b106E3C8681D08c513268854Aef257883298d3)) covering 100% of Monad testnet transaction fees.
+- [x] **Dual-Engine Prover**: AST invariant evaluation engine paired with `zyron-agent` ephemeral Anvil EVM sandbox attack simulation.
+- [x] **On-Chain Defenses**: `GuardedByZyron.sol` modifier with `onlyAttestedTarget` gatekeeping and Soulbound ERC-721 security seals.
+- [x] **Biometric Sign-Off**: Auditor reviews signed biometrically using Monad-native P256 / WebAuthn passkeys via Privy.
+
+### Phase 2: Design Partners & Developer CI/CD (In Progress • Q4 2026)
+- [ ] **Protocol Design Partners**: Onboarding the first 10 Monad ecosystem DeFi protocols and vaults with guaranteed 48-hour SLA turnaround.
+- [ ] **GitHub Actions PR Scanner**: Automated CI/CD security bot analyzing pull requests on commit and flagging invariant regressions.
+- [ ] **MonadVision Trust Passport**: Deep-link integration with Monad block explorers to display live verified audit seals directly on contract pages.
+- [ ] **Self-Serve Audit Portal**: Instant scope calculator, quote generator, and automated Foundry test suite export.
+
+### Phase 3: Monad Mainnet & Commercial ARR (H1 2027)
+- [ ] **Monad Mainnet Deployment**: Genesis deployment alongside the launch of Monad Mainnet.
+- [ ] **$1.2M ARR Target**: Scaling to 35 active recurring protocol subscribers on continuous CI/CD PR scanning plans ($1,500–$4,500/mo).
+- [ ] **ERC-8004 AI Agent Registry**: Machine-to-machine validation layer enabling autonomous trading agents to verify target contracts before signing transactions.
+- [ ] **Enterprise Telemetry API**: Institutional risk telemetry feeds for DeFi insurance underwriters (e.g., Nexus Mutual) and asset allocators.
+
+### Phase 4: Long-Term Expansions & Decentralization (H2 2027+)
+- [ ] **Parallel EVM Mempool Guard Rails**: Pre-execution transaction filter intercepting invariant-breaking exploit calls before state commit.
+- [ ] **Automated Exploit Proof Bug Bounty Escrow**: Trustless bounty resolution where researchers submit Foundry `.t.sol` proofs and receive instant escrow payouts.
+- [ ] **Cross-Chain Attestation Relays**: Relaying Monad-anchored bytecode attestations to Ethereum, Arbitrum, Base, and MegaETH via LayerZero/CCIP.
+- [ ] **Decentralized Staked Verifier Network**: Proof-of-Audit network where independent security researchers stake capital to back invariant proofs, with automated slashing for false approvals.
+- [ ] **Self-Healing Code Remediation**: AI synthesis of exact Solidity bug fixes verified by passing invariant test suites.
+
+---
+
 ## 📄 License
 MIT License. Built with ❤️ for the Monad Metropolis Hackathon.

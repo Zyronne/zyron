@@ -155,21 +155,21 @@ const SLIDES_META: SlideData[] = [
   },
   {
     id: "roadmap",
-    badge: "Execution & Traction",
-    title: "Verified Execution & Revenue Roadmap",
+    badge: "Strategic Roadmap",
+    title: "Verified Execution & Future Implementations",
     subtitle: "Live on Monad Testnet (Chain ID 10143) scaling to $1.2M ARR on Mainnet alongside design partner protocols.",
     category: "Traction",
     script:
-      "We are already live on Mow-nad testnet at zero-x-B-d-two-four with gas-sponsored relaying, our dual-engine prover, and the Guarded By Zairon modifier. In the fourth quarter, we are onboarding our first ten design partner protocols and launching our continuous GitHub bot. By the first half of twenty-twenty-seven, we are targeting one point two million dollars in annual recurring revenue across thirty-five protocols alongside Mow-nad mainnet.",
+      "We are already live on Mow-nad testnet at zero-x-B-d-two-four with gas-sponsored relaying, our dual-engine prover, and the Guarded By Zairon modifier. In the fourth quarter, we are onboarding our first ten design partner protocols and launching our continuous GitHub C-I C-D bot. By the first half of twenty-twenty-seven, we are targeting one point two million dollars in annual recurring revenue across thirty-five protocols alongside Mow-nad mainnet.",
   },
   {
     id: "vision",
-    badge: "The Opportunity & Ask",
-    title: "Partner With Zyron: Building the Trust Standard",
-    subtitle: "Establishing the default security and trust primitive for Monad and the autonomous AI agent economy.",
+    badge: "Future & Expansion",
+    title: "Future Implementations & Ecosystem Expansions",
+    subtitle: "ERC-8004 Agent Trust, Parallel Mempool Guard Rails, Cross-Chain Relays, and Staked Verifier Networks.",
     category: "Vision",
     script:
-      "Smart contract security is transitioning from subjective consulting opinions into verifiable, on-chain cryptographic proof. Zairon is establishing the trust primitive for Mow-nad and the autonomous AI agent economy. We are welcoming protocol design partners, strategic seed investors, and security researchers to join us in building security that can genuinely be proven and trusted onchain.",
+      "Looking ahead, Zairon is implementing four transformative expansions. First, our E-R-C eight-thousand-and-four protocol enables autonomous A-I agents to verify contract safety onchain before executing trades. Second, Mow-nad parallel mempool guard rails intercept invariant-breaking exploits before block finalization. Third, cross-chain attestation relays bridge verified proofs to Ethereum and layer-twos. And fourth, a decentralized staked verifier network unlocks automated bug bounty escrow payouts. We invite partners and investors to build this standard with us.",
   },
 ];
 
@@ -327,6 +327,7 @@ export default function PitchDeckPage() {
       .replace(/Zairon/g, "Zyron")
       .replace(/Zai-ron/g, "Zyron")
       .replace(/Mow-nad/g, "Monad")
+      .replace(/E-R-C eight-thousand-and-four/g, "ERC-8004")
       .replace(/E-R-C eight thousand and four/g, "ERC-8004")
       .replace(/E-R-C seven-twenty-one/g, "ERC-721")
       .replace(/A-S-T/g, "AST")
@@ -344,6 +345,8 @@ export default function PitchDeckPage() {
       .replace(/P-o-Cs/g, "PoCs")
       .replace(/P-o-C/g, "PoC")
       .replace(/dot-t-dot-sol/g, ".t.sol")
+      .replace(/A-I/g, "AI")
+      .replace(/layer-twos/g, "Layer-2s")
       .replace(/zero-x-B-d-two-four/g, "0xBd24...");
   };
 
@@ -1732,92 +1735,222 @@ function SlideCompetition() {
 
 // --- SLIDE 11: ROADMAP & TRACTION ---
 function SlideRoadmap() {
+  const [viewMode, setViewMode] = React.useState<"milestones" | "expansions">("milestones");
+
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
-      <SlideHeader
-        badge="Slide 11 – Execution & Traction"
-        title="Verified Execution & Revenue Roadmap"
-        description="Live on Monad Testnet (Chain ID 10143) scaling to $1.2M ARR on Mainnet alongside design partner protocols:"
-      />
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-3">
+        <SlideHeader
+          badge="Slide 11 – Strategic Roadmap"
+          title="Verified Execution & Future Implementations"
+          description="Strategic milestone breakdown from live Monad Testnet foundation to $1.2M ARR and future architectural expansions:"
+        />
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3.5">
-        {/* Phase 1 */}
-        <div className="p-4 rounded bg-bg-panel border border-accent-scan/50 space-y-3 font-mono">
-          <div className="flex items-center justify-between text-xs font-bold border-b border-border-hairline pb-2">
-            <span className="text-accent-scan">PHASE 1 (NOW • LIVE)</span>
-            <span className="px-1.5 py-0.5 rounded bg-bg-panel-raised text-signal-resolved text-[10px]">MONAD 10143</span>
-          </div>
-          <ul className="space-y-2 text-xs font-sans text-text-primary">
-            <li className="flex items-start gap-2">
-              <Check className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
-              <span>Registry contract live on Monad Testnet at <code className="text-accent-scan font-mono text-[10px]">0xBd24...9c4D3</code></span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Check className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
-              <span>Gas-sponsored relayer (<code className="text-text-muted font-mono text-[10px]">0x48b1...</code>) active</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Check className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
-              <span>Dual-engine AST parser & <code className="text-accent-scan font-mono text-[10px]">zyron-agent</code> Anvil sandbox prover</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Check className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
-              <span>P256 passkey sign-off & <code className="text-accent-scan font-mono text-[10px]">GuardedByZyron.sol</code> modifier</span>
-            </li>
-          </ul>
+        {/* View Toggle */}
+        <div className="flex items-center gap-1.5 p-1 rounded bg-bg-panel border border-border-hairline shrink-0 font-mono text-xs self-start sm:self-auto">
+          <button
+            type="button"
+            onClick={() => setViewMode("milestones")}
+            className={cn(
+              "px-3 py-1.5 rounded transition-colors cursor-pointer",
+              viewMode === "milestones"
+                ? "bg-accent-scan text-bg-void font-bold shadow-sm"
+                : "text-text-muted hover:text-text-primary"
+            )}
+          >
+            Timeline Milestones
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode("expansions")}
+            className={cn(
+              "px-3 py-1.5 rounded transition-colors cursor-pointer",
+              viewMode === "expansions"
+                ? "bg-accent-scan text-bg-void font-bold shadow-sm"
+                : "text-text-muted hover:text-text-primary"
+            )}
+          >
+            Future Implementations
+          </button>
         </div>
+      </div>
 
-        {/* Phase 2 */}
-        <div className="p-4 rounded bg-bg-panel border border-border-hairline space-y-3 font-mono">
-          <div className="flex items-center justify-between text-xs font-bold border-b border-border-hairline pb-2">
-            <span className="text-text-primary">PHASE 2 (Q4 2026)</span>
-            <span className="px-1.5 py-0.5 rounded bg-bg-panel-raised text-accent-scan text-[10px]">IN PROGRESS</span>
+      {viewMode === "milestones" ? (
+        /* 4-Phase Timeline Grid */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+          {/* Phase 1 */}
+          <div className="p-3.5 rounded bg-bg-panel border border-accent-scan/50 space-y-2.5 font-mono">
+            <div className="flex items-center justify-between text-xs font-bold border-b border-border-hairline pb-2">
+              <span className="text-accent-scan">PHASE 1 (NOW • LIVE)</span>
+              <span className="px-1.5 py-0.5 rounded bg-bg-panel-raised text-signal-resolved text-[10px]">MONAD 10143</span>
+            </div>
+            <ul className="space-y-1.5 text-xs font-sans text-text-primary">
+              <li className="flex items-start gap-1.5">
+                <Check className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
+                <span>Registry live at <code className="text-accent-scan font-mono text-[10px]">0xBd24...</code></span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <Check className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
+                <span>Gas-sponsored relayer (<code className="text-text-muted font-mono text-[10px]">0x48b1...</code>)</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <Check className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
+                <span>Dual-Engine prover & Anvil sandbox</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <Check className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
+                <span>P256 passkeys & <code className="text-accent-scan font-mono text-[10px]">GuardedByZyron</code></span>
+              </li>
+            </ul>
           </div>
-          <ul className="space-y-2 text-xs font-sans text-text-muted">
-            <li className="flex items-start gap-2">
-              <ArrowRight className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
-              <span>Onboard first 10 Monad ecosystem protocol design partners</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <ArrowRight className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
-              <span>Launch continuous GitHub Actions CI/CD automated PR scanner</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <ArrowRight className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
-              <span>Release MonadVision integrated Trust Passport badge</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <ArrowRight className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
-              <span>Open self-serve audit portal for community developers</span>
-            </li>
-          </ul>
-        </div>
 
-        {/* Phase 3 */}
-        <div className="p-4 rounded bg-bg-panel border border-border-hairline space-y-3 font-mono">
-          <div className="flex items-center justify-between text-xs font-bold border-b border-border-hairline pb-2">
-            <span className="text-text-muted">PHASE 3 (H1 2027)</span>
-            <span className="px-1.5 py-0.5 rounded bg-bg-panel-raised text-signal-resolved text-[10px]">$1.2M ARR</span>
+          {/* Phase 2 */}
+          <div className="p-3.5 rounded bg-bg-panel border border-border-hairline space-y-2.5 font-mono">
+            <div className="flex items-center justify-between text-xs font-bold border-b border-border-hairline pb-2">
+              <span className="text-text-primary">PHASE 2 (Q4 2026)</span>
+              <span className="px-1.5 py-0.5 rounded bg-bg-panel-raised text-accent-scan text-[10px]">IN PROGRESS</span>
+            </div>
+            <ul className="space-y-1.5 text-xs font-sans text-text-muted">
+              <li className="flex items-start gap-1.5">
+                <ArrowRight className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
+                <span>First 10 Monad protocol design partners</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <ArrowRight className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
+                <span>GitHub Actions automated PR security bot</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <ArrowRight className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
+                <span>MonadVision verified Trust Passport</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <ArrowRight className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
+                <span>Self-serve audit scoping portal</span>
+              </li>
+            </ul>
           </div>
-          <ul className="space-y-2 text-xs font-sans text-text-muted">
-            <li className="flex items-start gap-2">
-              <Sparkles className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
-              <span>Deploy on Monad Mainnet alongside genesis DeFi protocols</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Sparkles className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
-              <span>Target 35 active recurring protocols generating $1.2M ARR</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Sparkles className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
-              <span>Launch ERC-8004 Autonomous AI Agent security validation registry</span>
-            </li>
-            <li className="flex items-start gap-2">
-              <Sparkles className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
-              <span>Expand enterprise telemetry API for DeFi insurance underwriters</span>
-            </li>
-          </ul>
+
+          {/* Phase 3 */}
+          <div className="p-3.5 rounded bg-bg-panel border border-border-hairline space-y-2.5 font-mono">
+            <div className="flex items-center justify-between text-xs font-bold border-b border-border-hairline pb-2">
+              <span className="text-text-primary">PHASE 3 (H1 2027)</span>
+              <span className="px-1.5 py-0.5 rounded bg-bg-panel-raised text-signal-resolved text-[10px]">$1.2M ARR</span>
+            </div>
+            <ul className="space-y-1.5 text-xs font-sans text-text-muted">
+              <li className="flex items-start gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
+                <span>Monad Mainnet genesis deployment</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
+                <span>35 recurring protocols on CI/CD ARR</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
+                <span>ERC-8004 AI Agent Registry live</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-accent-scan shrink-0 mt-0.5" />
+                <span>DeFi insurance underwriting API</span>
+              </li>
+            </ul>
+          </div>
+
+          {/* Phase 4 */}
+          <div className="p-3.5 rounded bg-bg-panel border border-border-hairline space-y-2.5 font-mono">
+            <div className="flex items-center justify-between text-xs font-bold border-b border-border-hairline pb-2">
+              <span className="text-text-muted">PHASE 4 (H2 2027+)</span>
+              <span className="px-1.5 py-0.5 rounded bg-bg-panel-raised text-text-muted text-[10px]">EXPANSION</span>
+            </div>
+            <ul className="space-y-1.5 text-xs font-sans text-text-muted">
+              <li className="flex items-start gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-text-muted shrink-0 mt-0.5" />
+                <span>Parallel mempool guard rails</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-text-muted shrink-0 mt-0.5" />
+                <span>Cross-chain attestation relays</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-text-muted shrink-0 mt-0.5" />
+                <span>Decentralized staked verifier network</span>
+              </li>
+              <li className="flex items-start gap-1.5">
+                <Sparkles className="h-3.5 w-3.5 text-text-muted shrink-0 mt-0.5" />
+                <span>Automated exploit bounty escrow</span>
+              </li>
+            </ul>
+          </div>
         </div>
+      ) : (
+        /* Future Implementations Deep-Dive Grid */
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div className="p-4 rounded bg-bg-panel border border-accent-scan/40 space-y-2.5">
+            <div className="flex items-center justify-between font-mono text-xs">
+              <span className="text-accent-scan font-bold flex items-center gap-1.5">
+                <Cpu className="h-3.5 w-3.5" /> 1. ERC-8004 AGENT TRUST PROTOCOL
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent-scan/10 text-accent-scan font-bold">
+                MACHINE-TO-MACHINE
+              </span>
+            </div>
+            <h4 className="font-mono text-sm font-bold text-text-primary">Programmatic Validation for AI Agents</h4>
+            <p className="text-xs text-text-muted leading-relaxed font-sans">
+              Autonomous AI agents executing swaps or liquidity management cannot read PDFs. Zyron provides an on-chain boolean verification oracle (<code className="text-accent-scan font-mono">isAttestedTarget</code>) before agents commit treasury capital to unknown contracts.
+            </p>
+          </div>
+
+          <div className="p-4 rounded bg-bg-panel border border-border-hairline space-y-2.5">
+            <div className="flex items-center justify-between font-mono text-xs">
+              <span className="text-accent-scan font-bold flex items-center gap-1.5">
+                <Zap className="h-3.5 w-3.5" /> 2. PARALLEL MEMPOOL GUARD RAILS
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-bg-panel-raised text-signal-resolved font-bold">
+                PRE-EXECUTION
+              </span>
+            </div>
+            <h4 className="font-mono text-sm font-bold text-text-primary">Pre-Execution Invariant Interception</h4>
+            <p className="text-xs text-text-muted leading-relaxed font-sans">
+              Monad&apos;s 10,000 TPS parallel EVM pipeline enables pre-execution transaction inspection. Invariant-breaking exploit calls (flash loans, oracle skew) are detected in the mempool and trigger circuit breaker signals before block finality.
+            </p>
+          </div>
+
+          <div className="p-4 rounded bg-bg-panel border border-border-hairline space-y-2.5">
+            <div className="flex items-center justify-between font-mono text-xs">
+              <span className="text-accent-scan font-bold flex items-center gap-1.5">
+                <Coins className="h-3.5 w-3.5" /> 3. EXPLOIT PROOF BOUNTY ESCROW
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-bg-panel-raised text-text-primary font-bold">
+                TRUSTLESS PAYOUTS
+              </span>
+            </div>
+            <h4 className="font-mono text-sm font-bold text-text-primary">Zero-Friction Bug Bounty Resolution</h4>
+            <p className="text-xs text-text-muted leading-relaxed font-sans">
+              White-hats submit reproducible Foundry <code className="text-accent-scan font-mono">.t.sol</code> exploit tests instead of text reports. Zyron&apos;s sandbox runs the test on an Anvil fork; if proven, the on-chain escrow pays the bounty instantly without weeks of mediation.
+            </p>
+          </div>
+
+          <div className="p-4 rounded bg-bg-panel border border-border-hairline space-y-2.5">
+            <div className="flex items-center justify-between font-mono text-xs">
+              <span className="text-accent-scan font-bold flex items-center gap-1.5">
+                <GitBranch className="h-3.5 w-3.5" /> 4. SELF-HEALING CODE REMEDIATION
+              </span>
+              <span className="text-[10px] px-1.5 py-0.5 rounded bg-accent-scan/10 text-accent-scan font-bold">
+                AUTO-PATCH PRs
+              </span>
+            </div>
+            <h4 className="font-mono text-sm font-bold text-text-primary">Automated Solidity Fix Synthesis</h4>
+            <p className="text-xs text-text-muted leading-relaxed font-sans">
+              Beyond flagging invariant breaches, the Zyron CI/CD bot synthesizes the exact Solidity patch code, verifies that all invariants hold across fuzz runs, and submits a ready-to-merge GitHub pull request to the protocol team.
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Bottom Summary Callout */}
+      <div className="p-3.5 rounded bg-bg-panel border border-border-hairline font-mono text-xs text-text-muted flex items-center justify-between">
+        <span>Strategic Target:</span>
+        <span className="text-accent-scan font-bold">Scaling from Monad Testnet to $1.2M ARR & cross-chain verification.</span>
       </div>
     </div>
   );
@@ -1828,36 +1961,73 @@ function SlideVision({ onRestart }: { onRestart: () => void }) {
   return (
     <div className="space-y-6 max-w-4xl mx-auto">
       <SlideHeader
-        badge="Slide 12 – The Opportunity & Ask"
-        title="Partner With Zyron: Building the Trust Standard"
-        description="Establishing the default security and trust primitive for Monad and the autonomous AI agent economy:"
+        badge="Slide 12 – Future & Expansion"
+        title="Building the Trust Standard for the Autonomous Economy"
+        description="How Zyron scales from Monad's on-chain primitive to the universal trust layer for Web3 and autonomous AI:"
       />
 
-      <div className="p-5 rounded bg-bg-panel border border-border-hairline space-y-4">
-        <div className="font-mono text-xs font-bold text-accent-scan">WE ARE CURRENTLY WELCOMING:</div>
-        <div className="space-y-3 font-mono text-xs">
-          <div className="p-3 rounded bg-bg-panel-raised border border-border-hairline flex items-start gap-3">
-            <div className="h-5 w-5 rounded bg-bg-void text-accent-scan flex items-center justify-center shrink-0 border border-border-hairline font-bold">1</div>
-            <div>
-              <div className="font-bold text-text-primary font-sans">Protocol Design Partners & Monad Builders</div>
-              <div className="text-[11px] text-text-muted font-sans">DeFi protocols, vaults, and developers launching on Monad wanting 48-hour audits and GuardedByZyron runtime protection.</div>
-            </div>
+      {/* 4 Long-Term Expansion Horizons */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+        <div className="p-3 rounded bg-bg-panel border border-border-hairline space-y-1.5">
+          <div className="flex items-center justify-between font-mono text-[10px] text-accent-scan font-bold">
+            <span>HORIZON 01</span>
+            <Layers className="h-3.5 w-3.5" />
           </div>
+          <div className="font-mono text-xs font-bold text-text-primary">Cross-Chain Relays</div>
+          <p className="text-[11px] text-text-muted font-sans leading-relaxed">
+            Audited once on Monad, verified everywhere. Relaying bytecode proofs to Ethereum, Arbitrum, Base & MegaETH via LayerZero state proofs.
+          </p>
+        </div>
 
-          <div className="p-3 rounded bg-bg-panel-raised border border-border-hairline flex items-start gap-3">
-            <div className="h-5 w-5 rounded bg-bg-void text-accent-scan flex items-center justify-center shrink-0 border border-border-hairline font-bold">2</div>
-            <div>
-              <div className="font-bold text-text-primary font-sans">Strategic Capital & Seed Backers</div>
-              <div className="text-[11px] text-text-muted font-sans">Web3 security investors and ecosystem funds who believe verifiable on-chain security infrastructure is foundational to scaling parallel EVMs.</div>
-            </div>
+        <div className="p-3 rounded bg-bg-panel border border-border-hairline space-y-1.5">
+          <div className="flex items-center justify-between font-mono text-[10px] text-accent-scan font-bold">
+            <span>HORIZON 02</span>
+            <Zap className="h-3.5 w-3.5" />
           </div>
+          <div className="font-mono text-xs font-bold text-text-primary">Continuous CI/CD</div>
+          <p className="text-[11px] text-text-muted font-sans leading-relaxed">
+            Transforming static PDF snapshots into live continuous security subscriptions embedded directly in protocol developer pull requests.
+          </p>
+        </div>
 
-          <div className="p-3 rounded bg-bg-panel-raised border border-border-hairline flex items-start gap-3">
-            <div className="h-5 w-5 rounded bg-bg-void text-accent-scan flex items-center justify-center shrink-0 border border-border-hairline font-bold">3</div>
-            <div>
-              <div className="font-bold text-text-primary font-sans">Autonomous AI Agent Creators & Researchers</div>
-              <div className="text-[11px] text-text-muted font-sans">AI engineering teams looking for programmatic ERC-8004 on-chain trust validation before deploying capital on Monad.</div>
-            </div>
+        <div className="p-3 rounded bg-bg-panel border border-border-hairline space-y-1.5">
+          <div className="flex items-center justify-between font-mono text-[10px] text-accent-scan font-bold">
+            <span>HORIZON 03</span>
+            <Cpu className="h-3.5 w-3.5" />
+          </div>
+          <div className="font-mono text-xs font-bold text-text-primary">ERC-8004 AI Safety</div>
+          <p className="text-[11px] text-text-muted font-sans leading-relaxed">
+            Equipping autonomous AI agents with machine-to-machine validation so autonomous capital can safely allocate across DeFi.
+          </p>
+        </div>
+
+        <div className="p-3 rounded bg-bg-panel border border-border-hairline space-y-1.5">
+          <div className="flex items-center justify-between font-mono text-[10px] text-accent-scan font-bold">
+            <span>HORIZON 04</span>
+            <Scale className="h-3.5 w-3.5" />
+          </div>
+          <div className="font-mono text-xs font-bold text-text-primary">Staked Verifiers</div>
+          <p className="text-[11px] text-text-muted font-sans leading-relaxed">
+            Economic staking where security researchers back invariant proofs with capital bonds, decentralizing verification at institutional scale.
+          </p>
+        </div>
+      </div>
+
+      {/* Welcoming Partners Card */}
+      <div className="p-4 rounded bg-bg-panel border border-border-hairline space-y-3 font-mono text-xs">
+        <div className="font-bold text-accent-scan">WE ARE ACTIVELY WELCOMING:</div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2.5">
+          <div className="p-2.5 rounded bg-bg-panel-raised border border-border-hairline space-y-1">
+            <div className="font-bold text-text-primary font-sans">1. Protocol Design Partners</div>
+            <div className="text-[11px] text-text-muted font-sans">DeFi protocols and vaults launching on Monad wanting 48-hour audits and GuardedByZyron protection.</div>
+          </div>
+          <div className="p-2.5 rounded bg-bg-panel-raised border border-border-hairline space-y-1">
+            <div className="font-bold text-text-primary font-sans">2. Strategic Seed Backers</div>
+            <div className="text-[11px] text-text-muted font-sans">Investors who believe verifiable on-chain security infrastructure is foundational to scaling parallel EVMs.</div>
+          </div>
+          <div className="p-2.5 rounded bg-bg-panel-raised border border-border-hairline space-y-1">
+            <div className="font-bold text-text-primary font-sans">3. AI Agent Creators</div>
+            <div className="text-[11px] text-text-muted font-sans">Engineering teams integrating ERC-8004 on-chain trust validation before deploying autonomous capital.</div>
           </div>
         </div>
       </div>
@@ -1882,7 +2052,8 @@ function SlideVision({ onRestart }: { onRestart: () => void }) {
         </a>
       </div>
 
-      <div className="p-5 rounded bg-bg-panel-raised border border-accent-scan/50 flex flex-col sm:flex-row items-center justify-between gap-4">
+      {/* CTA Box */}
+      <div className="p-4 sm:p-5 rounded bg-bg-panel-raised border border-accent-scan/50 flex flex-col sm:flex-row items-center justify-between gap-4">
         <div className="space-y-1 text-center sm:text-left font-mono">
           <div className="text-sm font-bold text-text-primary">Let&apos;s make smart contract security verifiable and composable on-chain.</div>
           <div className="text-xs text-text-muted font-sans">Submit your contract for an audit or integrate GuardedByZyron into your protocol today.</div>
